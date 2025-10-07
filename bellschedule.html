@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bell Schedule</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.light-mode {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        body.dark-mode {
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+        .date {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .clock {
+            font-size: 12rem;
+            font-weight: bold;
+            line-height: 1;
+            font-family: 'Courier New', monospace;
+        }
+        .period-info {
+            font-size: 5rem;
+            margin-top: 2rem;
+            font-weight: bold;
+        }
+        .countdown {
+            font-size: 2.5rem;
+            margin-top: 1rem;
+        }
+        .progress-container {
+            margin-top: 2rem;
+            position: relative;
+        }
+        .progress {
+            height: 60px;
+            font-size: 1.5rem;
+            position: relative;
+        }
+        .progress-times {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.8rem;
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        .no-fly-zone {
+            background-color: #dc3545;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+            font-size: 1.8rem;
+        }
+        .no-fly-zone .progress {
+            margin-top: 1rem;
+            height: 40px;
+            background-color: rgba(255,255,255,0.3);
+        }
+        .no-fly-zone .progress-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        .settings-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(108, 117, 125, 0.9);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            display: flex;
+            gap: 2rem;
+        }
+        .settings-bar button {
+            font-size: 1.2rem;
+            padding: 0.5rem 1.2rem;
+        }
+        .container-main {
+            max-width: 1400px;
+            padding: 3rem;
+            margin-bottom: 120px;
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <div class="container-main mx-auto text-center">
+        <div class="date" id="date">----------</div>
+        <div class="clock" id="clock">--:--:-- --</div>
+        
+        <div class="period-info" id="periodInfo">---</div>
+        <div class="countdown" id="countdown"></div>
+        
+        <div class="progress-container" id="mainProgressContainer" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar" id="mainProgress" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div class="progress-times">
+                <span id="progressStart">--:--</span>
+                <span id="progressEnd">--:--</span>
+            </div>
+        </div>
+
+        <div class="no-fly-zone" id="noFlyZone" style="display: none;">
+            <div id="noFlyMessage">🚫 No Fly Zone ends at --:-- -- - No Hall Passes</div>
+            <div class="progress">
+                <div class="progress-bar bg-warning" id="noFlyProgress" role="progressbar" style="width: 0%">
+                    <span id="noFlyCountdown"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-bar">
+        <button id="themeToggle" class="btn btn-light">☀️ Light</button>
+        <button id="secondsToggle" class="btn btn-secondary">Hide Seconds</button>
+    </div>
+
+    <script>
+        // SCHEDULE CONFIGURATION
+        const SCHEDULE = {
+            monday: [
+                { period: 1, start: '09:45', end: '10:20' },
+                { period: 2, start: '10:25', end: '11:00' },
+                { period: 3, start: '11:05', end: '11:40' },
+                { period: 4, start: '11:45', end: '12:20' },
+                { period: 5, start: '12:25', end: '13:00' },
+                { period: 6, start: '13:05', end: '13:40' },
+                { period: 7, start: '13:45', end: '14:20' },
+                { period: 8, start: '14:25', end: '15:00' },
+                { period: 9, start: '15:05', end: '15:45' }
+            ],
+            regular: [
+                { period: 1, start: '08:10', end: '08:55' },
+                { period: 2, start: '09:00', end: '09:45' },
+                { period: 3, start: '09:50', end: '10:40' },
+                { period: 4, start: '10:45', end: '11:30' },
+                { period: 5, start: '11:35', end: '12:20' },
+                { period: 6, start: '12:25', end: '13:10' },
+                { period: 7, start: '13:15', end: '14:00' },
+                { period: 8, start: '14:05', end: '14:50' },
+                { period: 9, start: '14:55', end: '15:40' }
+            ]
+        };
+
+        const BEFORE_SCHOOL_START = '07:30';
+        const NO_FLY_MINUTES = 10;
+
+        let showSeconds = true;
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const secondsToggle = document.getElementById('secondsToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                themeToggle.textContent = '🌙 Dark';
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                themeToggle.textContent = '☀️ Light';
+            }
+        });
+
+        secondsToggle.addEventListener('click', () => {
+            showSeconds = !showSeconds;
+            secondsToggle.textContent = showSeconds ? 'Hide Seconds' : 'Show Seconds';
+        });
+
+        function parseTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function minutesToTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        }
+
+        function formatTime(date, includeSeconds = true) {
+            let hours = date.getHours();
+            const minutes = date.getMinutes();
+            const seconds = date.getSeconds();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            
+            if (includeSeconds) {
+                return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
+            } else {
+                return `${hours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+            }
+        }
+
+        function formatTimeFromMinutes(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+        }
+
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function getScheduleForDay(dayOfWeek) {
+            if (dayOfWeek === 1) return SCHEDULE.monday;
+            if (dayOfWeek >= 2 && dayOfWeek <= 5) return SCHEDULE.regular;
+            return null;
+        }
+
+        function getCurrentStatus(now, schedule) {
+            const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+            const beforeSchoolStart = parseTime(BEFORE_SCHOOL_START);
+            
+            if (!schedule) {
+                return { type: 'weekend' };
+            }
+
+            const firstPeriod = schedule[0];
+            const lastPeriod = schedule[schedule.length - 1];
+            const schoolStart = parseTime(firstPeriod.start);
+            const schoolEnd = parseTime(lastPeriod.end);
+
+            if (currentMinutes >= beforeSchoolStart && currentMinutes < schoolStart) {
+                return {
+                    type: 'before_school',
+                    nextPeriod: firstPeriod,
+                    start: beforeSchoolStart,
+                    end: schoolStart,
+                    current: currentMinutes
+                };
+            }
+
+            if (currentMinutes >= schoolEnd) {
+                return { type: 'after_school' };
+            }
+
+            if (currentMinutes >= schoolStart && currentMinutes < schoolEnd) {
+                for (let period of schedule) {
+                    const periodStart = parseTime(period.start);
+                    const periodEnd = parseTime(period.end);
+                    
+                    if (currentMinutes >= periodStart && currentMinutes < periodEnd) {
+                        return {
+                            type: 'period',
+                            period: period,
+                            start: periodStart,
+                            end: periodEnd,
+                            current: currentMinutes
+                        };
+                    }
+                }
+
+                let nextPeriod = null;
+                let prevPeriod = null;
+                for (let i = 0; i < schedule.length; i++) {
+                    const periodStart = parseTime(schedule[i].start);
+                    const periodEnd = parseTime(schedule[i].end);
+                    if (currentMinutes < periodStart) {
+                        nextPeriod = schedule[i];
+                        if (i > 0) prevPeriod = schedule[i - 1];
+                        break;
+                    }
+                }
+
+                let passingStart = schoolStart;
+                if (prevPeriod) {
+                    passingStart = parseTime(prevPeriod.end);
+                }
+
+                return {
+                    type: 'passing',
+                    nextPeriod: nextPeriod,
+                    prevPeriod: prevPeriod,
+                    start: passingStart,
+                    end: parseTime(nextPeriod.start),
+                    current: currentMinutes
+                };
+            }
+
+            return { type: 'before_school_early' };
+        }
+
+        function getNoFlyStatus(status, schedule) {
+            if (status.type === 'period') {
+                const periodStart = status.start;
+                const periodEnd = status.end;
+                const current = status.current;
+                const elapsed = current - periodStart;
+                const total = periodEnd - periodStart;
+
+                if (elapsed < NO_FLY_MINUTES) {
+                    return {
+                        active: true,
+                        endTime: periodStart + NO_FLY_MINUTES,
+                        current: current
+                    };
+                } else if (elapsed > (total - NO_FLY_MINUTES)) {
+                    const nextPeriodIndex = schedule.findIndex(p => p.period === status.period.period) + 1;
+                    if (nextPeriodIndex < schedule.length) {
+                        const nextPeriod = schedule[nextPeriodIndex];
+                        return {
+                            active: true,
+                            endTime: parseTime(nextPeriod.start) + NO_FLY_MINUTES,
+                            current: current
+                        };
+                    }
+                }
+            } else if (status.type === 'passing' && status.prevPeriod && status.nextPeriod) {
+                const prevPeriodEnd = parseTime(status.prevPeriod.end);
+                const nextPeriodStart = parseTime(status.nextPeriod.start);
+                const current = status.current;
+
+                return {
+                    active: true,
+                    endTime: nextPeriodStart + NO_FLY_MINUTES,
+                    current: current
+                };
+            }
+
+            return { active: false };
+        }
+
+        function updateDisplay() {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const schedule = getScheduleForDay(dayOfWeek);
+            
+            document.getElementById('clock').textContent = formatTime(now, showSeconds);
+            document.getElementById('date').textContent = formatDate(now);
+
+            const status = getCurrentStatus(now, schedule);
+            const periodInfo = document.getElementById('periodInfo');
+            const countdown = document.getElementById('countdown');
+            const mainProgressContainer = document.getElementById('mainProgressContainer');
+            const mainProgress = document.getElementById('mainProgress');
+            const progressStart = document.getElementById('progressStart');
+            const progressEnd = document.getElementById('progressEnd');
+            const noFlyZone = document.getElementById('noFlyZone');
+            const noFlyProgress = document.getElementById('noFlyProgress');
+            const noFlyMessage = document.getElementById('noFlyMessage');
+            const noFlyCountdown = document.getElementById('noFlyCountdown');
+
+            noFlyZone.style.display = 'none';
+
+            if (status.type === 'weekend' || status.type === 'before_school_early') {
+                periodInfo.textContent = dayOfWeek === 0 || dayOfWeek === 6 ? 'Weekend' : 'School Day';
+                countdown.textContent = '';
+                mainProgressContainer.style.display = 'none';
+            } else if (status.type === 'after_school') {
+                periodInfo.textContent = 'School Day Complete';
+                countdown.textContent = 'Have a great day!';
+                mainProgressContainer.style.display = 'none';
+            } else if (status.type === 'before_school') {
+                const remaining = status.end - status.current;
+                const minutes = Math.floor(remaining);
+                const seconds = Math.floor((remaining - minutes) * 60);
+                
+                periodInfo.textContent = 'School Starts Soon';
+                countdown.textContent = `Period 1 begins in ${minutes}:${String(seconds).padStart(2, '0')}`;
+                
+                const totalDuration = status.end - status.start;
+                const elapsed = status.current - status.start;
+                const percentage = (elapsed / totalDuration) * 100;
+                
+                mainProgressContainer.style.display = 'block';
+                mainProgress.style.width = percentage + '%';
+                mainProgress.classList.remove('bg-success', 'bg-warning');
+                mainProgress.classList.add('bg-info');
+                progressStart.textContent = formatTimeFromMinutes(status.start);
+                progressEnd.textContent = formatTimeFromMinutes(status.end);
+            } else if (status.type === 'period') {
+                const remaining = status.end - status.current;
+                const minutes = Math.floor(remaining);
+                const seconds = Math.floor((remaining - minutes) * 60);
+                
+                periodInfo.textContent = `Period ${status.period.period}`;
+                countdown.textContent = `${minutes}:${String(seconds).padStart(2, '0')} remaining`;
+                
+                const totalDuration = status.end - status.start;
+                const elapsed = status.current - status.start;
+                const percentage = (elapsed / totalDuration) * 100;
+                
+                mainProgressContainer.style.display = 'block';
+                mainProgress.style.width = percentage + '%';
+                mainProgress.classList.remove('bg-info', 'bg-warning');
+                mainProgress.classList.add('bg-success');
+                progressStart.textContent = formatTimeFromMinutes(status.start);
+                progressEnd.textContent = formatTimeFromMinutes(status.end);
+            } else if (status.type === 'passing') {
+                const remaining = status.end - status.current;
+                const minutes = Math.floor(remaining);
+                const seconds = Math.floor((remaining - minutes) * 60);
+                
+                periodInfo.textContent = 'Passing Period';
+                countdown.textContent = `Period ${status.nextPeriod.period} starts in ${minutes}:${String(seconds).padStart(2, '0')}`;
+                
+                const totalDuration = status.end - status.start;
+                const timeRemaining = status.end - status.current;
+                const percentage = (timeRemaining / totalDuration) * 100;
+                
+                mainProgressContainer.style.display = 'block';
+                mainProgress.style.width = percentage + '%';
+                mainProgress.classList.remove('bg-success', 'bg-info');
+                mainProgress.classList.add('bg-warning');
+                progressStart.textContent = formatTimeFromMinutes(status.start);
+                progressEnd.textContent = formatTimeFromMinutes(status.end);
+            }
+
+            const noFlyStatus = getNoFlyStatus(status, schedule);
+            if (noFlyStatus.active) {
+                noFlyZone.style.display = 'block';
+                const noFlyRemaining = noFlyStatus.endTime - noFlyStatus.current;
+                const noFlyMinutes = Math.floor(noFlyRemaining);
+                const noFlySeconds = Math.floor((noFlyRemaining - noFlyMinutes) * 60);
+                
+                noFlyMessage.textContent = `🚫 No Fly Zone ends at ${formatTimeFromMinutes(noFlyStatus.endTime)} - No Hall Passes`;
+                noFlyCountdown.textContent = `${noFlyMinutes}:${String(noFlySeconds).padStart(2, '0')}`;
+                
+                let noFlyTotalDuration;
+                if (status.type === 'period') {
+                    const elapsed = status.current - status.start;
+                    const total = status.end - status.start;
+                    if (elapsed < NO_FLY_MINUTES) {
+                        noFlyTotalDuration = NO_FLY_MINUTES;
+                    } else {
+                        noFlyTotalDuration = NO_FLY_MINUTES;
+                    }
+                } else if (status.type === 'passing') {
+                    const prevEnd = parseTime(status.prevPeriod.end);
+                    noFlyTotalDuration = noFlyStatus.endTime - (prevEnd - NO_FLY_MINUTES);
+                }
+                
+                const noFlyElapsed = noFlyTotalDuration - noFlyRemaining;
+                const noFlyPercentage = (noFlyElapsed / noFlyTotalDuration) * 100;
+                noFlyProgress.style.width = noFlyPercentage + '%';
+            }
+        }
+
+        updateDisplay();
+        setInterval(updateDisplay, 100);
+    </script>
+</body>
+</html>
