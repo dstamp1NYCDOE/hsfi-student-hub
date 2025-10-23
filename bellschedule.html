@@ -13,11 +13,62 @@
             overflow-x: hidden;
         }
         body.light-mode {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+            background: linear-gradient(135deg, #e0f7ff 0%, #ffffff 100%);
+            color: #1a1a1a;
+        }
+        body.light-mode .clock {
+            color: #0066cc;
+            text-shadow: 2px 2px 4px rgba(0, 102, 204, 0.2);
+        }
+        body.light-mode .date,
+        body.light-mode .progress-header,
+        body.light-mode .period-label,
+        body.light-mode .simple-message {
+            color: #0066cc;
+            text-shadow: 1px 1px 2px rgba(0, 102, 204, 0.1);
+        }
+        body.light-mode .countdown-in-bar {
+            color: #1a1a1a;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+        }
+        body.light-mode .schedule-panel {
+            background: rgba(255, 255, 255, 0.85);
+            border-left: 1px solid rgba(0, 102, 204, 0.2);
+            box-shadow: -5px 0 20px rgba(0, 102, 204, 0.1);
+        }
+        body.light-mode .schedule-panel h3 {
+            color: #0066cc;
+        }
+        body.light-mode .schedule-item {
+            background: rgba(0, 102, 204, 0.08);
+            border: 1px solid rgba(0, 102, 204, 0.15);
+            color: #1a1a1a;
+        }
+        body.light-mode .schedule-item.current {
+            background: rgba(40, 167, 69, 0.15);
+            border: 2px solid rgba(40, 167, 69, 0.6);
+            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.2);
+        }
+        body.light-mode .schedule-item.next {
+            background: rgba(255, 193, 7, 0.15);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            box-shadow: 0 2px 15px rgba(255, 193, 7, 0.2);
+        }
+        body.light-mode .schedule-item.passing {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.6);
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.25);
+        }
+        body.light-mode .progress {
+            background-color: rgba(0, 102, 204, 0.1);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+        }
+        body.light-mode .settings-bar {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 102, 204, 0.2);
         }
         body.dark-mode {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #f8f9fa;
         }
         
@@ -37,11 +88,12 @@
         
         .schedule-panel {
             flex: 0 0 15%;
-            background-color: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
             padding: 2rem 1rem;
             overflow-y: auto;
-            border-left: 2px solid rgba(255, 255, 255, 0.3);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
         }
         
         .schedule-panel h3 {
@@ -49,32 +101,35 @@
             margin-bottom: 1.5rem;
             text-align: center;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .schedule-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
             padding: 0.75rem;
             margin-bottom: 0.75rem;
             transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .schedule-item.current {
-            background-color: rgba(40, 167, 69, 0.4);
-            border: 2px solid rgba(40, 167, 69, 0.8);
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+            background: rgba(72, 219, 109, 0.3);
+            border: 2px solid rgba(72, 219, 109, 0.8);
+            box-shadow: 0 4px 20px rgba(72, 219, 109, 0.4);
+            transform: scale(1.02);
         }
         
         .schedule-item.next {
-            background-color: rgba(255, 193, 7, 0.3);
-            border: 2px solid rgba(255, 193, 7, 0.6);
+            background: rgba(255, 193, 7, 0.25);
+            border: 2px solid rgba(255, 193, 7, 0.7);
+            box-shadow: 0 2px 15px rgba(255, 193, 7, 0.3);
         }
         
         .schedule-item.passing {
-            background-color: rgba(255, 193, 7, 0.4);
-            border: 2px solid rgba(255, 193, 7, 0.8);
-            box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+            background: rgba(255, 193, 7, 0.35);
+            border: 2px solid rgba(255, 193, 7, 0.9);
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+            transform: scale(1.02);
         }
         
         .schedule-item-period {
@@ -88,7 +143,6 @@
             opacity: 0.9;
         }
         
-        /* Large screens (32" displays) - 1920px and up */
         .date {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
@@ -99,9 +153,7 @@
             font-weight: bold;
             line-height: 0.9;
             font-family: 'Courier New', monospace;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
             letter-spacing: 0.05em;
-            /* transform: scaleX(1.2); */
         }
         .progress-header {
             display: flex;
@@ -115,7 +167,6 @@
         .progress-header .period-label {
             font-size: 2.5rem;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         .progress-container {
             margin-top: 2rem;
@@ -126,10 +177,11 @@
             height: 100px;
             font-size: 2rem;
             position: relative;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
             overflow: visible;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
         .progress.reverse {
             display: flex;
@@ -141,7 +193,8 @@
             justify-content: center;
             font-weight: bold;
             transition: width 0.3s ease;
-            border-radius: 15px;
+            border-radius: 20px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .countdown-in-bar {
             position: absolute;
@@ -151,19 +204,18 @@
             font-size: 3rem;
             font-weight: bold;
             z-index: 10;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            color: white;
             width: 100%;
             text-align: center;
         }
         .no-fly-zone {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             padding: 1.5rem;
-            border-radius: 15px;
+            border-radius: 20px;
             margin-top: 1.5rem;
             font-size: 1.8rem;
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+            box-shadow: 0 10px 40px rgba(245, 87, 108, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         .no-fly-zone .progress {
             margin-top: 1rem;
@@ -182,8 +234,8 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
             padding: 1rem 2rem;
             border-radius: 50px;
             display: flex;
@@ -192,6 +244,8 @@
             transition: opacity 0.3s ease;
             pointer-events: none;
             z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         .settings-bar.visible {
             opacity: 1;
@@ -222,113 +276,33 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* Medium screens - tablets and smaller monitors */
         @media (max-width: 1400px) {
-            .clock {
-                font-size: 10rem;
-            }
-            .progress-header {
-                font-size: 1.2rem;
-            }
-            .progress-header .period-label {
-                font-size: 2rem;
-            }
-            .countdown-in-bar {
-                font-size: 2.2rem;
-            }
-            .progress {
-                height: 80px;
-            }
-            .schedule-panel h3 {
-                font-size: 1.2rem;
-            }
-            .schedule-item-period {
-                font-size: 0.95rem;
-            }
-            .schedule-item-time {
-                font-size: 0.8rem;
-            }
-            .simple-message {
-                font-size: 2.5rem;
-            }
+            .clock { font-size: 10rem; }
+            .progress-header { font-size: 1.2rem; }
+            .progress-header .period-label { font-size: 2rem; }
+            .countdown-in-bar { font-size: 2.2rem; }
+            .progress { height: 80px; }
+            .schedule-panel h3 { font-size: 1.2rem; }
+            .schedule-item-period { font-size: 0.95rem; }
+            .schedule-item-time { font-size: 0.8rem; }
+            .simple-message { font-size: 2.5rem; }
         }
 
-        /* Small screens - quarter screen projections */
         @media (max-width: 900px) {
-            .main-layout {
-                flex-direction: column;
-            }
-            .clock-panel {
-                flex: 0 0 70%;
-            }
-            .schedule-panel {
-                flex: 0 0 30%;
-                border-left: none;
-                border-top: 2px solid rgba(255, 255, 255, 0.3);
-            }
-            .clock {
-                font-size: 6rem;
-            }
-            .progress-header {
-                font-size: 1rem;
-            }
-            .progress-header .period-label {
-                font-size: 1.5rem;
-            }
-            .countdown-in-bar {
-                font-size: 1.5rem;
-            }
-            .progress {
-                height: 60px;
-            }
-            .schedule-panel h3 {
-                font-size: 1rem;
-                margin-bottom: 1rem;
-            }
-            .schedule-item {
-                padding: 0.5rem;
-                margin-bottom: 0.5rem;
-            }
-            .schedule-item-period {
-                font-size: 0.85rem;
-            }
-            .schedule-item-time {
-                font-size: 0.7rem;
-            }
-            .simple-message {
-                font-size: 2rem;
-            }
+            .main-layout { flex-direction: column; }
+            .clock-panel { flex: 0 0 70%; }
+            .schedule-panel { flex: 0 0 30%; border-left: none; border-top: 2px solid rgba(255, 255, 255, 0.3); }
+            .clock { font-size: 6rem; }
+            .progress-header { font-size: 1rem; }
+            .progress-header .period-label { font-size: 1.5rem; }
+            .countdown-in-bar { font-size: 1.5rem; }
+            .progress { height: 60px; }
         }
 
-        /* Extra small screens - very compact view */
         @media (max-width: 600px) {
-            .clock {
-                font-size: 4rem;
-            }
-            .progress-header {
-                font-size: 0.85rem;
-            }
-            .progress-header .period-label {
-                font-size: 1.2rem;
-            }
-            .countdown-in-bar {
-                font-size: 1.2rem;
-            }
-            .progress {
-                height: 50px;
-            }
-            .schedule-panel h3 {
-                font-size: 0.9rem;
-            }
-            .schedule-item-period {
-                font-size: 0.75rem;
-            }
-            .schedule-item-time {
-                font-size: 0.65rem;
-            }
-            .simple-message {
-                font-size: 1.5rem;
-            }
+            .clock { font-size: 4rem; }
+            .countdown-in-bar { font-size: 1.2rem; }
+            .progress { height: 50px; }
         }
     </style>
 </head>
@@ -336,14 +310,14 @@
     <div class="main-layout">
         <div class="clock-panel">
             <div class="container-main text-center">
-                <div class="date" id="date">----------</div>
-                <div class="clock" id="clock">--:--:-- --</div>
+                <div class="date" id="date"></div>
+                <div class="clock" id="clock"></div>
                 
                 <div class="progress-container" id="mainProgressContainer" style="display: none;">
                     <div class="progress-header">
-                        <span id="progressStart">--:--</span>
-                        <span class="period-label" id="periodInfo">---</span>
-                        <span id="progressEnd">--:--</span>
+                        <span id="progressStart"></span>
+                        <span class="period-label" id="periodInfo"></span>
+                        <span id="progressEnd"></span>
                     </div>
                     <div class="progress">
                         <div class="progress-bar" id="mainProgress" role="progressbar" style="width: 0%"></div>
@@ -354,7 +328,7 @@
                 <div class="simple-message" id="simpleMessage" style="display: none;"></div>
 
                 <div class="no-fly-zone" id="noFlyZone" style="display: none;">
-                    <div id="noFlyMessage">🚫 No Fly Zone ends at --:-- -- - No Hall Passes</div>
+                    <div id="noFlyMessage"></div>
                     <div class="progress">
                         <div class="progress-bar bg-warning" id="noFlyProgress" role="progressbar" style="width: 0%">
                             <span id="noFlyCountdown"></span>
@@ -373,16 +347,12 @@
     <div class="settings-trigger" id="settingsTrigger"></div>
     <div class="settings-bar" id="settingsBar">
         <button id="themeToggle" class="btn btn-light">☀️ Light</button>
-        <button id="secondsToggle" class="btn btn-secondary">Hide Seconds</button>
+        <button id="secondsToggle" class="btn btn-secondary">Show Seconds</button>
     </div>
 
     <script>
-        // Auto-refresh every hour
-        setTimeout(() => {
-            location.reload();
-        }, 60 * 60 * 1000);
+        setTimeout(() => location.reload(), 60 * 60 * 1000);
 
-        // SCHEDULE CONFIGURATION
         const SCHEDULE = {
             monday: [
                 { period: 1, start: '09:45', end: '10:20' },
@@ -411,26 +381,31 @@
         const BEFORE_SCHOOL_START = '07:30';
         const NO_FLY_MINUTES = 10;
 
-        let showSeconds = true;
+        let showSeconds = localStorage.getItem('showSeconds') === 'true';
+        let isDarkMode = localStorage.getItem('isDarkMode') === 'true';
 
-        // Theme toggle and settings hover
+        const body = document.body;
         const themeToggle = document.getElementById('themeToggle');
         const secondsToggle = document.getElementById('secondsToggle');
-        const settingsBar = document.getElementById('settingsBar');
-        const settingsTrigger = document.getElementById('settingsTrigger');
-        const body = document.body;
         
-        // Hover effect for settings
-        settingsTrigger.addEventListener('mouseenter', () => {
-            settingsBar.classList.add('visible');
+        if (isDarkMode) {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+            themeToggle.textContent = '🌙 Dark';
+        }
+        
+        secondsToggle.textContent = showSeconds ? 'Hide Seconds' : 'Show Seconds';
+        
+        document.getElementById('settingsTrigger').addEventListener('mouseenter', () => {
+            document.getElementById('settingsBar').classList.add('visible');
         });
         
-        settingsBar.addEventListener('mouseenter', () => {
-            settingsBar.classList.add('visible');
+        document.getElementById('settingsBar').addEventListener('mouseenter', () => {
+            document.getElementById('settingsBar').classList.add('visible');
         });
         
-        settingsBar.addEventListener('mouseleave', () => {
-            settingsBar.classList.remove('visible');
+        document.getElementById('settingsBar').addEventListener('mouseleave', () => {
+            document.getElementById('settingsBar').classList.remove('visible');
         });
         
         themeToggle.addEventListener('click', () => {
@@ -438,27 +413,24 @@
                 body.classList.remove('light-mode');
                 body.classList.add('dark-mode');
                 themeToggle.textContent = '🌙 Dark';
+                localStorage.setItem('isDarkMode', 'true');
             } else {
                 body.classList.remove('dark-mode');
                 body.classList.add('light-mode');
                 themeToggle.textContent = '☀️ Light';
+                localStorage.setItem('isDarkMode', 'false');
             }
         });
 
         secondsToggle.addEventListener('click', () => {
             showSeconds = !showSeconds;
             secondsToggle.textContent = showSeconds ? 'Hide Seconds' : 'Show Seconds';
+            localStorage.setItem('showSeconds', showSeconds);
         });
 
         function parseTime(timeStr) {
             const [hours, minutes] = timeStr.split(':').map(Number);
             return hours * 60 + minutes;
-        }
-
-        function minutesToTime(minutes) {
-            const hours = Math.floor(minutes / 60);
-            const mins = minutes % 60;
-            return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
         }
 
         function formatTime(date, includeSeconds = true) {
@@ -498,9 +470,7 @@
             const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
             const beforeSchoolStart = parseTime(BEFORE_SCHOOL_START);
             
-            if (!schedule) {
-                return { type: 'weekend' };
-            }
+            if (!schedule) return { type: 'weekend' };
 
             const firstPeriod = schedule[0];
             const lastPeriod = schedule[schedule.length - 1];
@@ -517,9 +487,7 @@
                 };
             }
 
-            if (currentMinutes >= schoolEnd) {
-                return { type: 'after_school' };
-            }
+            if (currentMinutes >= schoolEnd) return { type: 'after_school' };
 
             if (currentMinutes >= schoolStart && currentMinutes < schoolEnd) {
                 for (let period of schedule) {
@@ -541,7 +509,6 @@
                 let prevPeriod = null;
                 for (let i = 0; i < schedule.length; i++) {
                     const periodStart = parseTime(schedule[i].start);
-                    const periodEnd = parseTime(schedule[i].end);
                     if (currentMinutes < periodStart) {
                         nextPeriod = schedule[i];
                         if (i > 0) prevPeriod = schedule[i - 1];
@@ -549,16 +516,11 @@
                     }
                 }
 
-                let passingStart = schoolStart;
-                if (prevPeriod) {
-                    passingStart = parseTime(prevPeriod.end);
-                }
-
                 return {
                     type: 'passing',
                     nextPeriod: nextPeriod,
                     prevPeriod: prevPeriod,
-                    start: passingStart,
+                    start: prevPeriod ? parseTime(prevPeriod.end) : schoolStart,
                     end: parseTime(nextPeriod.start),
                     current: currentMinutes
                 };
@@ -569,39 +531,20 @@
 
         function getNoFlyStatus(status, schedule) {
             if (status.type === 'period') {
-                const periodStart = status.start;
-                const periodEnd = status.end;
-                const current = status.current;
-                const elapsed = current - periodStart;
-                const total = periodEnd - periodStart;
+                const elapsed = status.current - status.start;
+                const total = status.end - status.start;
 
                 if (elapsed < NO_FLY_MINUTES) {
-                    return {
-                        active: true,
-                        endTime: periodStart + NO_FLY_MINUTES,
-                        current: current
-                    };
+                    return { active: true, endTime: status.start + NO_FLY_MINUTES, current: status.current };
                 } else if (elapsed > (total - NO_FLY_MINUTES)) {
                     const nextPeriodIndex = schedule.findIndex(p => p.period === status.period.period) + 1;
                     if (nextPeriodIndex < schedule.length) {
                         const nextPeriod = schedule[nextPeriodIndex];
-                        return {
-                            active: true,
-                            endTime: parseTime(nextPeriod.start) + NO_FLY_MINUTES,
-                            current: current
-                        };
+                        return { active: true, endTime: parseTime(nextPeriod.start) + NO_FLY_MINUTES, current: status.current };
                     }
                 }
             } else if (status.type === 'passing' && status.prevPeriod && status.nextPeriod) {
-                const prevPeriodEnd = parseTime(status.prevPeriod.end);
-                const nextPeriodStart = parseTime(status.nextPeriod.start);
-                const current = status.current;
-
-                return {
-                    active: true,
-                    endTime: nextPeriodStart + NO_FLY_MINUTES,
-                    current: current
-                };
+                return { active: true, endTime: parseTime(status.nextPeriod.start) + NO_FLY_MINUTES, current: status.current };
             }
 
             return { active: false };
@@ -619,41 +562,38 @@
             schedulePanel.style.display = 'block';
             scheduleList.innerHTML = '';
             
-            schedule.forEach((period, index) => {
+            schedule.forEach((period) => {
                 const item = document.createElement('div');
                 item.className = 'schedule-item';
                 
-                // Highlight current period
                 if (status.type === 'period' && status.period.period === period.period) {
                     item.classList.add('current');
-                }
-                // Highlight next period during passing
-                else if (status.type === 'passing' && status.nextPeriod && status.nextPeriod.period === period.period) {
+                } else if (status.type === 'passing' && status.nextPeriod && status.nextPeriod.period === period.period) {
                     item.classList.add('next');
                 }
                 
+                const startTime = formatTimeFromMinutes(parseTime(period.start));
+                const endTime = formatTimeFromMinutes(parseTime(period.end));
+                
                 item.innerHTML = `
                     <div class="schedule-item-period">Period ${period.period}</div>
-                    <div class="schedule-item-time">${period.start} - ${period.end}</div>
+                    <div class="schedule-item-time">${startTime} - ${endTime}</div>
                 `;
                 
                 scheduleList.appendChild(item);
             });
             
-            // Add passing periods as items too
-            if (status.type === 'passing') {
+            if (status.type === 'passing' && status.nextPeriod) {
                 const items = scheduleList.querySelectorAll('.schedule-item');
-                if (status.nextPeriod) {
-                    const nextIndex = schedule.findIndex(p => p.period === status.nextPeriod.period);
-                    if (nextIndex > 0) {
-                        const passingItem = document.createElement('div');
-                        passingItem.className = 'schedule-item passing';
-                        passingItem.innerHTML = `
-                            <div class="schedule-item-period">Passing Period</div>
-                            <div class="schedule-item-time">Now</div>
-                        `;
-                        scheduleList.insertBefore(passingItem, items[nextIndex]);
-                    }
+                const nextIndex = schedule.findIndex(p => p.period === status.nextPeriod.period);
+                if (nextIndex > 0) {
+                    const passingItem = document.createElement('div');
+                    passingItem.className = 'schedule-item passing';
+                    passingItem.innerHTML = `
+                        <div class="schedule-item-period">Passing Period</div>
+                        <div class="schedule-item-time">Now</div>
+                    `;
+                    scheduleList.insertBefore(passingItem, items[nextIndex]);
                 }
             }
         }
@@ -667,20 +607,14 @@
             document.getElementById('date').textContent = formatDate(now);
 
             const status = getCurrentStatus(now, schedule);
-            const periodInfo = document.getElementById('periodInfo');
-            const countdown = document.getElementById('countdown');
+            const noFlyZone = document.getElementById('noFlyZone');
+            noFlyZone.style.display = 'none';
+            
+            updateSchedulePanel(schedule, status);
+
             const mainProgressContainer = document.getElementById('mainProgressContainer');
             const simpleMessage = document.getElementById('simpleMessage');
             const mainProgress = document.getElementById('mainProgress');
-            const progressStart = document.getElementById('progressStart');
-            const progressEnd = document.getElementById('progressEnd');
-            const noFlyZone = document.getElementById('noFlyZone');
-            const noFlyProgress = document.getElementById('noFlyProgress');
-            const noFlyMessage = document.getElementById('noFlyMessage');
-            const noFlyCountdown = document.getElementById('noFlyCountdown');
-
-            noFlyZone.style.display = 'none';
-            updateSchedulePanel(schedule, status);
 
             if (status.type === 'weekend' || status.type === 'before_school_early') {
                 mainProgressContainer.style.display = 'none';
@@ -690,66 +624,39 @@
                 mainProgressContainer.style.display = 'none';
                 simpleMessage.style.display = 'block';
                 simpleMessage.textContent = 'School Day Complete - Have a great day!';
-            } else if (status.type === 'before_school') {
+            } else {
                 simpleMessage.style.display = 'none';
+                mainProgressContainer.style.display = 'block';
+                
                 const remaining = status.end - status.current;
                 const minutes = Math.floor(remaining);
                 const seconds = Math.floor((remaining - minutes) * 60);
                 
-                periodInfo.textContent = 'School Starts Soon';
-                countdown.textContent = `Period 1 begins in ${minutes}:${String(seconds).padStart(2, '0')}`;
-                
-                const totalDuration = status.end - status.start;
-                const elapsed = status.current - status.start;
-                const percentage = (elapsed / totalDuration) * 100;
-                
-                mainProgressContainer.style.display = 'block';
-                mainProgress.style.width = percentage + '%';
-                mainProgress.classList.remove('bg-success', 'bg-warning');
-                mainProgress.classList.add('bg-info');
-                mainProgress.parentElement.classList.remove('reverse');
-                progressStart.textContent = formatTimeFromMinutes(status.start);
-                progressEnd.textContent = formatTimeFromMinutes(status.end);
-            } else if (status.type === 'period') {
-                simpleMessage.style.display = 'none';
-                const remaining = status.end - status.current;
-                const minutes = Math.floor(remaining);
-                const seconds = Math.floor((remaining - minutes) * 60);
-                
-                periodInfo.textContent = `Period ${status.period.period}`;
-                countdown.textContent = `${minutes}:${String(seconds).padStart(2, '0')} remaining`;
-                
-                const totalDuration = status.end - status.start;
-                const elapsed = status.current - status.start;
-                const percentage = (elapsed / totalDuration) * 100;
-                
-                mainProgressContainer.style.display = 'block';
-                mainProgress.style.width = percentage + '%';
-                mainProgress.classList.remove('bg-info', 'bg-warning');
-                mainProgress.classList.add('bg-success');
-                mainProgress.parentElement.classList.remove('reverse');
-                progressStart.textContent = formatTimeFromMinutes(status.start);
-                progressEnd.textContent = formatTimeFromMinutes(status.end);
-            } else if (status.type === 'passing') {
-                simpleMessage.style.display = 'none';
-                const remaining = status.end - status.current;
-                const minutes = Math.floor(remaining);
-                const seconds = Math.floor((remaining - minutes) * 60);
-                
-                periodInfo.textContent = 'Passing Period';
-                countdown.textContent = `Period ${status.nextPeriod.period} starts in ${minutes}:${String(seconds).padStart(2, '0')}`;
-                
-                const totalDuration = status.end - status.start;
-                const timeRemaining = status.end - status.current;
-                const percentage = (timeRemaining / totalDuration) * 100;
-                
-                mainProgressContainer.style.display = 'block';
-                mainProgress.style.width = percentage + '%';
-                mainProgress.classList.remove('bg-success', 'bg-info');
-                mainProgress.classList.add('bg-warning');
-                mainProgress.parentElement.classList.add('reverse');
-                progressStart.textContent = formatTimeFromMinutes(status.start);
-                progressEnd.textContent = formatTimeFromMinutes(status.end);
+                document.getElementById('progressStart').textContent = formatTimeFromMinutes(status.start);
+                document.getElementById('progressEnd').textContent = formatTimeFromMinutes(status.end);
+
+                if (status.type === 'before_school') {
+                    document.getElementById('periodInfo').textContent = 'School Starts Soon';
+                    document.getElementById('countdown').textContent = `Period 1 begins in ${minutes}:${String(seconds).padStart(2, '0')}`;
+                    const percentage = ((status.current - status.start) / (status.end - status.start)) * 100;
+                    mainProgress.style.width = percentage + '%';
+                    mainProgress.className = 'progress-bar bg-info';
+                    mainProgress.parentElement.classList.remove('reverse');
+                } else if (status.type === 'period') {
+                    document.getElementById('periodInfo').textContent = `Period ${status.period.period}`;
+                    document.getElementById('countdown').textContent = `${minutes}:${String(seconds).padStart(2, '0')} remaining`;
+                    const percentage = ((status.current - status.start) / (status.end - status.start)) * 100;
+                    mainProgress.style.width = percentage + '%';
+                    mainProgress.className = 'progress-bar bg-success';
+                    mainProgress.parentElement.classList.remove('reverse');
+                } else if (status.type === 'passing') {
+                    document.getElementById('periodInfo').textContent = 'Passing Period';
+                    document.getElementById('countdown').textContent = `Period ${status.nextPeriod.period} starts in ${minutes}:${String(seconds).padStart(2, '0')}`;
+                    const percentage = (remaining / (status.end - status.start)) * 100;
+                    mainProgress.style.width = percentage + '%';
+                    mainProgress.className = 'progress-bar bg-warning';
+                    mainProgress.parentElement.classList.add('reverse');
+                }
             }
 
             const noFlyStatus = getNoFlyStatus(status, schedule);
@@ -759,26 +666,11 @@
                 const noFlyMinutes = Math.floor(noFlyRemaining);
                 const noFlySeconds = Math.floor((noFlyRemaining - noFlyMinutes) * 60);
                 
-                noFlyMessage.textContent = `🚫 No Fly Zone ends at ${formatTimeFromMinutes(noFlyStatus.endTime)} - No Hall Passes`;
-                noFlyCountdown.textContent = `${noFlyMinutes}:${String(noFlySeconds).padStart(2, '0')}`;
+                document.getElementById('noFlyMessage').textContent = `🚫 No Fly Zone ends at ${formatTimeFromMinutes(noFlyStatus.endTime)} - No Hall Passes`;
+                document.getElementById('noFlyCountdown').textContent = `${noFlyMinutes}:${String(noFlySeconds).padStart(2, '0')}`;
                 
-                let noFlyTotalDuration;
-                if (status.type === 'period') {
-                    const elapsed = status.current - status.start;
-                    const total = status.end - status.start;
-                    if (elapsed < NO_FLY_MINUTES) {
-                        noFlyTotalDuration = NO_FLY_MINUTES;
-                    } else {
-                        noFlyTotalDuration = NO_FLY_MINUTES;
-                    }
-                } else if (status.type === 'passing') {
-                    const prevEnd = parseTime(status.prevPeriod.end);
-                    noFlyTotalDuration = noFlyStatus.endTime - (prevEnd - NO_FLY_MINUTES);
-                }
-                
-                const noFlyElapsed = noFlyTotalDuration - noFlyRemaining;
-                const noFlyPercentage = (noFlyElapsed / noFlyTotalDuration) * 100;
-                noFlyProgress.style.width = noFlyPercentage + '%';
+                const noFlyPercentage = ((NO_FLY_MINUTES - noFlyRemaining) / NO_FLY_MINUTES) * 100;
+                document.getElementById('noFlyProgress').style.width = noFlyPercentage + '%';
             }
         }
 
