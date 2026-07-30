@@ -375,6 +375,12 @@
                 { period: 7, start: '13:15', end: '14:00' },
                 { period: 8, start: '14:05', end: '14:50' },
                 { period: 9, start: '14:55', end: '15:40' }
+            ],
+            summer: [
+                { period: 1, start: '07:45', end: '09:48' },
+                { period: 2, start: '09:49', end: '11:52' },
+                { period: 'Lunch', label: 'Lunch', start: '11:53', end: '12:23' },
+                { period: 3, start: '12:24', end: '14:27' }
             ]
         };
 
@@ -460,10 +466,22 @@
             return date.toLocaleDateString('en-US', options);
         }
 
-        function getScheduleForDay(dayOfWeek) {
+        function getScheduleForDay(now) {
+            const month = now.getMonth();
+            const dayOfWeek = now.getDay();
+
+            if (month === 6 || month === 7) {
+                if (dayOfWeek >= 1 && dayOfWeek <= 4) return SCHEDULE.summer;
+                return null;
+            }
+
             if (dayOfWeek === 1) return SCHEDULE.monday;
             if (dayOfWeek >= 2 && dayOfWeek <= 5) return SCHEDULE.regular;
             return null;
+        }
+
+        function periodLabel(period) {
+            return period.label || `Period ${period.period}`;
         }
 
         function getCurrentStatus(now, schedule) {
@@ -576,7 +594,7 @@
                 const endTime = formatTimeFromMinutes(parseTime(period.end));
                 
                 item.innerHTML = `
-                    <div class="schedule-item-period">Period ${period.period}</div>
+                    <div class="schedule-item-period">${periodLabel(period)}</div>
                     <div class="schedule-item-time">${startTime} - ${endTime}</div>
                 `;
                 
@@ -601,7 +619,7 @@
         function updateDisplay() {
             const now = new Date();
             const dayOfWeek = now.getDay();
-            const schedule = getScheduleForDay(dayOfWeek);
+            const schedule = getScheduleForDay(now);
             
             document.getElementById('clock').textContent = formatTime(now, showSeconds);
             document.getElementById('date').textContent = formatDate(now);
@@ -619,7 +637,7 @@
             if (status.type === 'weekend' || status.type === 'before_school_early') {
                 mainProgressContainer.style.display = 'none';
                 simpleMessage.style.display = 'block';
-                simpleMessage.textContent = dayOfWeek === 0 || dayOfWeek === 6 ? 'Weekend' : 'School Day';
+                simpleMessage.textContent = dayOfWeek === 0 || dayOfWeek === 6 ? 'Weekend' : 'No School Today';
             } else if (status.type === 'after_school') {
                 mainProgressContainer.style.display = 'none';
                 simpleMessage.style.display = 'block';
@@ -637,13 +655,13 @@
 
                 if (status.type === 'before_school') {
                     document.getElementById('periodInfo').textContent = 'School Starts Soon';
-                    document.getElementById('countdown').textContent = `Period 1 begins in ${minutes}:${String(seconds).padStart(2, '0')}`;
+                    document.getElementById('countdown').textContent = `${periodLabel(status.nextPeriod)} begins in ${minutes}:${String(seconds).padStart(2, '0')}`;
                     const percentage = ((status.current - status.start) / (status.end - status.start)) * 100;
                     mainProgress.style.width = percentage + '%';
                     mainProgress.className = 'progress-bar bg-info';
                     mainProgress.parentElement.classList.remove('reverse');
                 } else if (status.type === 'period') {
-                    document.getElementById('periodInfo').textContent = `Period ${status.period.period}`;
+                    document.getElementById('periodInfo').textContent = periodLabel(status.period);
                     document.getElementById('countdown').textContent = `${minutes}:${String(seconds).padStart(2, '0')} remaining`;
                     const percentage = ((status.current - status.start) / (status.end - status.start)) * 100;
                     mainProgress.style.width = percentage + '%';
@@ -651,7 +669,7 @@
                     mainProgress.parentElement.classList.remove('reverse');
                 } else if (status.type === 'passing') {
                     document.getElementById('periodInfo').textContent = 'Passing Period';
-                    document.getElementById('countdown').textContent = `Period ${status.nextPeriod.period} starts in ${minutes}:${String(seconds).padStart(2, '0')}`;
+                    document.getElementById('countdown').textContent = `${periodLabel(status.nextPeriod)} starts in ${minutes}:${String(seconds).padStart(2, '0')}`;
                     const percentage = (remaining / (status.end - status.start)) * 100;
                     mainProgress.style.width = percentage + '%';
                     mainProgress.className = 'progress-bar bg-warning';
