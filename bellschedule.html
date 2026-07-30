@@ -67,15 +67,51 @@
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(0, 102, 204, 0.2);
         }
+        body.light-mode .events-ticker {
+            background: rgba(255, 255, 255, 0.75);
+            border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+            color: #0066cc;
+        }
         body.dark-mode {
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #f8f9fa;
         }
-        
+
+        .events-ticker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 500;
+        }
+        .events-ticker-track {
+            display: inline-flex;
+            white-space: nowrap;
+            padding-left: 100%;
+            font-size: 1.3rem;
+            font-weight: 600;
+            animation: ticker-scroll 40s linear infinite;
+        }
+        .events-ticker-track span {
+            padding-right: 4rem;
+        }
+        @keyframes ticker-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
         .main-layout {
             display: flex;
-            height: 100vh;
+            height: calc(100vh - 56px);
             width: 100vw;
+            margin-top: 56px;
         }
         
         .clock-panel {
@@ -286,6 +322,7 @@
             .schedule-item-period { font-size: 0.95rem; }
             .schedule-item-time { font-size: 0.8rem; }
             .simple-message { font-size: 2.5rem; }
+            .events-ticker-track { font-size: 1.1rem; }
         }
 
         @media (max-width: 900px) {
@@ -297,6 +334,9 @@
             .progress-header .period-label { font-size: 1.5rem; }
             .countdown-in-bar { font-size: 1.5rem; }
             .progress { height: 60px; }
+            .events-ticker { height: 44px; }
+            .events-ticker-track { font-size: 0.95rem; }
+            .main-layout { height: calc(100vh - 44px); margin-top: 44px; }
         }
 
         @media (max-width: 600px) {
@@ -307,6 +347,9 @@
     </style>
 </head>
 <body class="light-mode">
+    <div class="events-ticker" id="eventsTicker">
+        <div class="events-ticker-track" id="eventsTickerTrack"><span>Loading events&hellip;</span></div>
+    </div>
     <div class="main-layout">
         <div class="clock-panel">
             <div class="container-main text-center">
@@ -386,6 +429,154 @@
 
         const BEFORE_SCHOOL_START = '07:30';
         const NO_FLY_MINUTES = 10;
+
+        const EVENTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7vNkMO1iGDGFOM1b2zKhyWP1aD0bovAG_67Ie7smJFMVxaJCQqiOq4r5z2d5i1mpl0kvE55LxEhwP/pub?gid=0&single=true&output=csv';
+        const SPECIAL_SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7vNkMO1iGDGFOM1b2zKhyWP1aD0bovAG_67Ie7smJFMVxaJCQqiOq4r5z2d5i1mpl0kvE55LxEhwP/pub?gid=1391951721&single=true&output=csv';
+
+        let events = [];
+        let specialSchedules = {};
+
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (inQuotes) {
+                    if (char === '"') {
+                        if (line[i + 1] === '"') { current += '"'; i++; }
+                        else { inQuotes = false; }
+                    } else {
+                        current += char;
+                    }
+                } else if (char === '"') {
+                    inQuotes = true;
+                } else if (char === ',') {
+                    values.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current);
+            return values;
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split(/\r?\n/).filter(line => line.trim() !== '');
+            if (lines.length === 0) return [];
+            const headers = parseCSVLine(lines[0]).map(h => h.trim());
+            return lines.slice(1).map(line => {
+                const values = parseCSVLine(line);
+                const row = {};
+                headers.forEach((header, i) => { row[header] = (values[i] || '').trim(); });
+                return row;
+            });
+        }
+
+        function normalizeTimeString(timeStr) {
+            const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+            if (!match) return null;
+            let hours = parseInt(match[1], 10);
+            const minutes = match[2];
+            const meridiem = match[3] ? match[3].toUpperCase() : (hours === 12 ? 'PM' : (hours >= 7 ? 'AM' : 'PM'));
+            if (meridiem === 'PM' && hours !== 12) hours += 12;
+            if (meridiem === 'AM' && hours === 12) hours = 0;
+            return `${String(hours).padStart(2, '0')}:${minutes}`;
+        }
+
+        function buildSpecialSchedules(rows) {
+            const map = {};
+            rows.forEach(row => {
+                const date = row.date;
+                if (!date) return;
+                if (!map[date]) map[date] = { periods: [], message: null };
+
+                if (!row.start || !row.end) {
+                    if (row.label) map[date].message = row.label;
+                    return;
+                }
+
+                const start = normalizeTimeString(row.start);
+                const end = normalizeTimeString(row.end);
+                if (!start || !end) return;
+
+                map[date].periods.push({
+                    period: row.period || row.label,
+                    label: row.label || undefined,
+                    start,
+                    end
+                });
+            });
+
+            Object.keys(map).forEach(date => {
+                map[date].periods.sort((a, b) => parseTime(a.start) - parseTime(b.start));
+                if (map[date].periods.length === 0) map[date].periods = null;
+            });
+
+            return map;
+        }
+
+        function parseDateKey(dateStr) {
+            const match = (dateStr || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!match) return null;
+            return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        }
+
+        function getDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function buildTickerItems(now) {
+            const todayKey = getDateKey(now);
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            return events
+                .map(e => ({ ...e, dateObj: parseDateKey(e.date) }))
+                .filter(e => e.dateObj && e.dateObj >= startOfToday)
+                .filter(e => (e.dateObj - startOfToday) / 86400000 <= 7)
+                .sort((a, b) => a.dateObj - b.dateObj || (a.time || '').localeCompare(b.time || ''))
+                .map(e => {
+                    const dayLabel = e.date === todayKey
+                        ? 'Today'
+                        : e.dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const timePart = e.time ? ` (${e.time})` : '';
+                    const descPart = e.description ? ` – ${e.description}` : '';
+                    return `${dayLabel}: ${e.title}${timePart}${descPart}`;
+                });
+        }
+
+        function renderEventsTicker() {
+            const track = document.getElementById('eventsTickerTrack');
+            const items = buildTickerItems(new Date());
+            const content = items.length > 0 ? items.join('   •   ') : 'No upcoming events scheduled';
+            const safeContent = escapeHTML(content);
+
+            track.innerHTML = `<span>${safeContent}</span><span>${safeContent}</span>`;
+            track.style.animationDuration = `${Math.max(20, content.length / 8)}s`;
+        }
+
+        async function loadEvents() {
+            const response = await fetch(EVENTS_CSV_URL);
+            const text = await response.text();
+            events = parseCSV(text);
+            renderEventsTicker();
+        }
+
+        async function loadSpecialSchedules() {
+            const response = await fetch(SPECIAL_SCHEDULE_CSV_URL);
+            const text = await response.text();
+            specialSchedules = buildSpecialSchedules(parseCSV(text));
+        }
 
         let showSeconds = localStorage.getItem('showSeconds') === 'true';
         let isDarkMode = localStorage.getItem('isDarkMode') === 'true';
@@ -619,8 +810,9 @@
         function updateDisplay() {
             const now = new Date();
             const dayOfWeek = now.getDay();
-            const schedule = getScheduleForDay(now);
-            
+            const special = specialSchedules[getDateKey(now)];
+            const schedule = special ? special.periods : getScheduleForDay(now);
+
             document.getElementById('clock').textContent = formatTime(now, showSeconds);
             document.getElementById('date').textContent = formatDate(now);
 
@@ -637,7 +829,9 @@
             if (status.type === 'weekend' || status.type === 'before_school_early') {
                 mainProgressContainer.style.display = 'none';
                 simpleMessage.style.display = 'block';
-                simpleMessage.textContent = dayOfWeek === 0 || dayOfWeek === 6 ? 'Weekend' : 'No School Today';
+                simpleMessage.textContent = special && special.message
+                    ? special.message
+                    : (dayOfWeek === 0 || dayOfWeek === 6 ? 'Weekend' : 'No School Today');
             } else if (status.type === 'after_school') {
                 mainProgressContainer.style.display = 'none';
                 simpleMessage.style.display = 'block';
@@ -691,6 +885,9 @@
                 document.getElementById('noFlyProgress').style.width = noFlyPercentage + '%';
             }
         }
+
+        loadEvents().catch(err => console.error('Failed to load events CSV', err));
+        loadSpecialSchedules().catch(err => console.error('Failed to load special schedule CSV', err));
 
         updateDisplay();
         setInterval(updateDisplay, 100);
