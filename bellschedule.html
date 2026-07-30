@@ -84,27 +84,25 @@
             right: 0;
             height: 56px;
             overflow: hidden;
-            display: flex;
-            align-items: center;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             z-index: 500;
         }
         .events-ticker-track {
-            display: inline-flex;
+            position: absolute;
+            top: 50%;
             white-space: nowrap;
-            padding-left: 100%;
             font-size: 1.3rem;
             font-weight: 600;
-            animation: ticker-scroll 40s linear infinite;
-        }
-        .events-ticker-track span {
-            padding-right: 4rem;
+            transform: translateY(-50%);
+            animation-name: ticker-scroll;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
         }
         @keyframes ticker-scroll {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
+            from { transform: translateY(-50%) translateX(0); }
+            to { transform: translateY(-50%) translateX(var(--ticker-distance, -100%)); }
         }
 
         .main-layout {
@@ -394,7 +392,33 @@
     </div>
 
     <script>
-        setTimeout(() => location.reload(), 60 * 60 * 1000);
+        const MIN_RELOAD_MS = 5 * 60 * 1000;
+        const MAX_RELOAD_MS = 20 * 60 * 1000;
+        const QUIET_HOURS_START = 18; // 6 PM
+        const QUIET_HOURS_END = 6;    // 6 AM
+
+        function isQuietHours(date) {
+            const hour = date.getHours();
+            return hour >= QUIET_HOURS_START || hour < QUIET_HOURS_END;
+        }
+
+        function msUntilQuietHoursEnd(date) {
+            const end = new Date(date);
+            end.setHours(QUIET_HOURS_END, 0, 0, 0);
+            if (end <= date) end.setDate(end.getDate() + 1);
+            return end - date;
+        }
+
+        let reloadTimer = null;
+
+        function scheduleReload(delayMs) {
+            const now = new Date();
+            const effectiveDelay = isQuietHours(now) ? msUntilQuietHoursEnd(now) : delayMs;
+            clearTimeout(reloadTimer);
+            reloadTimer = setTimeout(() => location.reload(), effectiveDelay);
+        }
+
+        scheduleReload(MIN_RELOAD_MS);
 
         const SCHEDULE = {
             monday: [
@@ -530,12 +554,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
         function buildTickerItems(now) {
             const todayKey = getDateKey(now);
             const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -556,13 +574,21 @@
         }
 
         function renderEventsTicker() {
+            const ticker = document.getElementById('eventsTicker');
             const track = document.getElementById('eventsTickerTrack');
             const items = buildTickerItems(new Date());
             const content = items.length > 0 ? items.join('   •   ') : 'No upcoming events scheduled';
-            const safeContent = escapeHTML(content);
 
-            track.innerHTML = `<span>${safeContent}</span><span>${safeContent}</span>`;
-            track.style.animationDuration = `${Math.max(20, content.length / 8)}s`;
+            track.textContent = content;
+            track.style.left = `${ticker.offsetWidth}px`;
+
+            const distance = ticker.offsetWidth + track.scrollWidth;
+            const loopSeconds = Math.max(15, distance / 80);
+            track.style.setProperty('--ticker-distance', `-${distance}px`);
+            track.style.animationDuration = `${loopSeconds}s`;
+
+            const reloadDelay = Math.min(MAX_RELOAD_MS, Math.max(MIN_RELOAD_MS, loopSeconds * 1000 + 10000));
+            scheduleReload(reloadDelay);
         }
 
         async function loadEvents() {
