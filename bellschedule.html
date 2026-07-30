@@ -20,7 +20,6 @@
             color: #0066cc;
             text-shadow: 2px 2px 4px rgba(0, 102, 204, 0.2);
         }
-        body.light-mode .date,
         body.light-mode .progress-header,
         body.light-mode .period-label,
         body.light-mode .simple-message {
@@ -67,61 +66,110 @@
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(0, 102, 204, 0.2);
         }
-        body.light-mode .events-ticker {
+        body.light-mode .week-calendar {
             background: rgba(255, 255, 255, 0.75);
             border-bottom: 1px solid rgba(0, 102, 204, 0.2);
             color: #0066cc;
+        }
+        body.light-mode .week-day {
+            background: rgba(0, 102, 204, 0.08);
+            border: 1px solid rgba(0, 102, 204, 0.15);
+            color: #1a1a1a;
+        }
+        body.light-mode .week-day.today {
+            background: rgba(0, 102, 204, 0.25);
+            border: 2px solid rgba(0, 102, 204, 0.8);
         }
         body.dark-mode {
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #f8f9fa;
         }
 
-        .events-ticker {
+        .week-calendar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 56px;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            padding: 0.6rem 1rem;
+            box-sizing: border-box;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             z-index: 500;
         }
-        .events-ticker-track {
-            position: absolute;
-            top: 50%;
-            white-space: nowrap;
-            font-size: 1.3rem;
-            font-weight: 600;
-            transform: translateY(-50%);
-            animation-name: ticker-scroll;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
+        .week-row {
+            display: flex;
+            gap: 0.5rem;
         }
-        @keyframes ticker-scroll {
-            from { transform: translateY(-50%) translateX(0); }
-            to { transform: translateY(-50%) translateX(var(--ticker-distance, -100%)); }
+        .week-day {
+            flex: 1;
+            min-width: 0;
+            border-radius: 10px;
+            padding: 0.9rem 1.1rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .week-day-header {
+            font-weight: bold;
+            font-size: 1.3rem;
+            font-size: clamp(0.9rem, calc(var(--calendar-w, 1400px) * 0.033), 2rem);
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .week-day-events {
+            font-size: 1.05rem;
+            font-size: clamp(0.7rem, calc(var(--calendar-w, 1400px) * 0.02), 1.6rem);
+            opacity: 0.9;
+        }
+        .week-day-event {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .week-day-event-empty {
+            opacity: 0.5;
+        }
+        .week-day.today {
+            background: rgba(72, 219, 109, 0.3);
+            border: 2px solid rgba(72, 219, 109, 0.8);
+            box-shadow: 0 4px 16px rgba(72, 219, 109, 0.35);
+        }
+        .week-day.past {
+            opacity: 0.4;
+        }
+        .week-row-upcoming {
+            opacity: 0.7;
+        }
+        .week-row-upcoming .week-day-header {
+            font-size: 1.1rem;
+            font-size: clamp(0.8rem, calc(var(--calendar-w, 1400px) * 0.028), 1.7rem);
+        }
+        .week-row-upcoming .week-day-events {
+            font-size: 0.9rem;
+            font-size: clamp(0.6rem, calc(var(--calendar-w, 1400px) * 0.017), 1.4rem);
         }
 
         .main-layout {
             display: flex;
-            height: calc(100vh - 56px);
             width: 100vw;
-            margin-top: 56px;
         }
         
         .clock-panel {
             flex: 0 0 85%;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 2rem;
+            padding: 3rem 2rem 2rem;
         }
         
         .schedule-panel {
             flex: 0 0 15%;
+            position: relative;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             padding: 2rem 1rem;
@@ -132,17 +180,30 @@
         
         .schedule-panel h3 {
             font-size: 1.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.25rem;
             text-align: center;
             font-weight: bold;
+        }
+
+        .schedule-type-label {
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 1.25rem;
+        }
+
+        .data-status {
+            font-size: 1rem;
+            opacity: 0.75;
+            margin-bottom: 0.5rem;
         }
         
         .schedule-item {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
-            transition: all 0.3s ease;
+            padding: calc(1.5rem * var(--schedule-item-scale, 1));
+            margin-bottom: calc(1.5rem * var(--schedule-item-scale, 1));
+            transition: padding 0.3s ease, margin 0.3s ease, background-color 0.3s ease, border 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
@@ -167,23 +228,24 @@
         }
         
         .schedule-item-period {
-            font-size: 1.1rem;
+            font-size: calc(2.2rem * var(--schedule-item-scale, 1));
             font-weight: bold;
-            margin-bottom: 0.25rem;
+            margin-bottom: calc(0.5rem * var(--schedule-item-scale, 1));
+            transition: font-size 0.3s ease;
         }
-        
+
         .schedule-item-time {
-            font-size: 0.9rem;
+            font-size: calc(1.8rem * var(--schedule-item-scale, 1));
             opacity: 0.9;
+            transition: font-size 0.3s ease;
+        }
+        .schedule-item-time .time-part {
+            white-space: nowrap;
         }
         
-        .date {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            opacity: 0.9;
-        }
         .clock {
-            font-size: 14rem;
+            font-size: 10rem;
+            font-size: clamp(4rem, min(calc(var(--clock-panel-w, 1400px) * 0.12), calc(var(--clock-panel-h, 800px) * 0.34)), 22rem);
             font-weight: bold;
             line-height: 0.9;
             font-family: 'Courier New', monospace;
@@ -195,11 +257,13 @@
             align-items: center;
             margin-bottom: 0.5rem;
             font-size: 1.5rem;
+            font-size: clamp(1.2rem, min(calc(var(--clock-panel-w, 1400px) * 0.05), calc(var(--clock-panel-h, 800px) * 0.055)), 2.6rem);
             font-weight: bold;
             opacity: 0.9;
         }
         .progress-header .period-label {
             font-size: 2.5rem;
+            font-size: clamp(1.6rem, min(calc(var(--clock-panel-w, 1400px) * 0.09), calc(var(--clock-panel-h, 800px) * 0.09)), 5rem);
             font-weight: bold;
         }
         .progress-container {
@@ -209,6 +273,7 @@
         }
         .progress {
             height: 100px;
+            height: clamp(60px, calc(var(--clock-panel-h, 800px) * 0.13), 180px);
             font-size: 2rem;
             position: relative;
             background-color: rgba(255, 255, 255, 0.15);
@@ -235,7 +300,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 3rem;
+            font-size: 2.2rem;
+            font-size: clamp(1.4rem, min(calc(var(--clock-panel-w, 1400px) * 0.05), calc(var(--clock-panel-h, 800px) * 0.065)), 4rem);
             font-weight: bold;
             z-index: 10;
             width: 100%;
@@ -248,6 +314,7 @@
             border-radius: 20px;
             margin-top: 1.5rem;
             font-size: 1.8rem;
+            font-size: clamp(1.3rem, min(calc(var(--clock-panel-w, 1400px) * 0.022), calc(var(--clock-panel-h, 800px) * 0.045)), 2.6rem);
             box-shadow: 0 10px 40px rgba(245, 87, 108, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -303,7 +370,8 @@
         }
         
         .simple-message {
-            font-size: 3rem;
+            font-size: 2.5rem;
+            font-size: clamp(2rem, min(calc(var(--clock-panel-w, 1400px) * 0.06), calc(var(--clock-panel-h, 800px) * 0.16)), 6rem);
             text-align: center;
             margin-top: 2rem;
             font-weight: bold;
@@ -311,47 +379,27 @@
         }
 
         @media (max-width: 1400px) {
-            .clock { font-size: 10rem; }
-            .progress-header { font-size: 1.2rem; }
-            .progress-header .period-label { font-size: 2rem; }
-            .countdown-in-bar { font-size: 2.2rem; }
-            .progress { height: 80px; }
             .schedule-panel h3 { font-size: 1.2rem; }
-            .schedule-item-period { font-size: 0.95rem; }
-            .schedule-item-time { font-size: 0.8rem; }
-            .simple-message { font-size: 2.5rem; }
-            .events-ticker-track { font-size: 1.1rem; }
+            .schedule-item-period { font-size: calc(1.9rem * var(--schedule-item-scale, 1)); }
+            .schedule-item-time { font-size: calc(1.6rem * var(--schedule-item-scale, 1)); }
         }
 
         @media (max-width: 900px) {
             .main-layout { flex-direction: column; }
             .clock-panel { flex: 0 0 70%; }
             .schedule-panel { flex: 0 0 30%; border-left: none; border-top: 2px solid rgba(255, 255, 255, 0.3); }
-            .clock { font-size: 6rem; }
-            .progress-header { font-size: 1rem; }
-            .progress-header .period-label { font-size: 1.5rem; }
-            .countdown-in-bar { font-size: 1.5rem; }
-            .progress { height: 60px; }
-            .events-ticker { height: 44px; }
-            .events-ticker-track { font-size: 0.95rem; }
-            .main-layout { height: calc(100vh - 44px); margin-top: 44px; }
-        }
-
-        @media (max-width: 600px) {
-            .clock { font-size: 4rem; }
-            .countdown-in-bar { font-size: 1.2rem; }
-            .progress { height: 50px; }
         }
     </style>
 </head>
 <body class="light-mode">
-    <div class="events-ticker" id="eventsTicker">
-        <div class="events-ticker-track" id="eventsTickerTrack"><span>Loading events&hellip;</span></div>
+    <div class="week-calendar" id="weekCalendar">
+        <div class="week-row week-row-current" id="weekRowCurrent"></div>
+        <div class="week-row week-row-upcoming" id="weekRowUpcoming"></div>
     </div>
     <div class="main-layout">
         <div class="clock-panel">
             <div class="container-main text-center">
-                <div class="date" id="date"></div>
+                <div class="data-status" id="dataStatus" style="display: none;"></div>
                 <div class="clock" id="clock"></div>
                 
                 <div class="progress-container" id="mainProgressContainer" style="display: none;">
@@ -381,6 +429,7 @@
         
         <div class="schedule-panel" id="schedulePanel">
             <h3>Today's Schedule</h3>
+            <div class="schedule-type-label" id="scheduleTypeLabel"></div>
             <div id="scheduleList"></div>
         </div>
     </div>
@@ -393,7 +442,6 @@
 
     <script>
         const MIN_RELOAD_MS = 5 * 60 * 1000;
-        const MAX_RELOAD_MS = 20 * 60 * 1000;
         const QUIET_HOURS_START = 18; // 6 PM
         const QUIET_HOURS_END = 6;    // 6 AM
 
@@ -541,12 +589,6 @@
             return map;
         }
 
-        function parseDateKey(dateStr) {
-            const match = (dateStr || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (!match) return null;
-            return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-        }
-
         function getDateKey(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -554,54 +596,170 @@
             return `${year}-${month}-${day}`;
         }
 
-        function buildTickerItems(now) {
-            const todayKey = getDateKey(now);
-            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const WEEK_ROTATE_MS = 60 * 1000;
+        const EVENT_ROTATE_MS = 6 * 1000;
+        const EVENTS_PER_CELL = 3;
 
-            return events
-                .map(e => ({ ...e, dateObj: parseDateKey(e.date) }))
-                .filter(e => e.dateObj && e.dateObj >= startOfToday)
-                .filter(e => (e.dateObj - startOfToday) / 86400000 <= 7)
-                .sort((a, b) => a.dateObj - b.dateObj || (a.time || '').localeCompare(b.time || ''))
-                .map(e => {
-                    const dayLabel = e.date === todayKey
-                        ? 'Today'
-                        : e.dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                    const timePart = e.time ? ` (${e.time})` : '';
-                    const descPart = e.description ? ` – ${e.description}` : '';
-                    return `${dayLabel}: ${e.title}${timePart}${descPart}`;
-                });
+        let weekRotationState = 0; // 0 = next week, 1 = week after
+        let eventRotationOffset = 0;
+
+        function getMonday(date) {
+            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const day = d.getDay();
+            d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+            return d;
         }
 
-        function renderEventsTicker() {
-            const ticker = document.getElementById('eventsTicker');
-            const track = document.getElementById('eventsTickerTrack');
-            const items = buildTickerItems(new Date());
-            const content = items.length > 0 ? items.join('   •   ') : 'No upcoming events scheduled';
+        function addDays(date, n) {
+            const d = new Date(date);
+            d.setDate(d.getDate() + n);
+            return d;
+        }
 
-            track.textContent = content;
-            track.style.left = `${ticker.offsetWidth}px`;
+        function getEventsForDate(dateKey) {
+            return events.filter(e => e.date === dateKey);
+        }
 
-            const distance = ticker.offsetWidth + track.scrollWidth;
-            const loopSeconds = Math.max(15, distance / 80);
-            track.style.setProperty('--ticker-distance', `-${distance}px`);
-            track.style.animationDuration = `${loopSeconds}s`;
+        function buildWeekDays(monday, now) {
+            const todayKey = getDateKey(now);
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const days = [];
+            for (let i = 0; i < 5; i++) {
+                const d = addDays(monday, i);
+                const dateKey = getDateKey(d);
+                days.push({
+                    dateKey,
+                    dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                    dayNum: d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }),
+                    isToday: dateKey === todayKey,
+                    isPast: d < startOfToday
+                });
+            }
+            return days;
+        }
 
-            const reloadDelay = Math.min(MAX_RELOAD_MS, Math.max(MIN_RELOAD_MS, loopSeconds * 1000 + 10000));
-            scheduleReload(reloadDelay);
+        function renderWeekRow(container, days, markTodayPast) {
+            container.innerHTML = '';
+            days.forEach(day => {
+                const cell = document.createElement('div');
+                cell.className = 'week-day';
+                if (markTodayPast) {
+                    if (day.isToday) cell.classList.add('today');
+                    else if (day.isPast) cell.classList.add('past');
+                }
+
+                const header = document.createElement('div');
+                header.className = 'week-day-header';
+                header.textContent = `${day.dayName} ${day.dayNum}`;
+                cell.appendChild(header);
+
+                const eventsWrap = document.createElement('div');
+                eventsWrap.className = 'week-day-events';
+
+                const dayEvents = getEventsForDate(day.dateKey);
+                const visibleEvents = dayEvents.length > EVENTS_PER_CELL
+                    ? Array.from({ length: EVENTS_PER_CELL }, (_, i) => dayEvents[(eventRotationOffset + i) % dayEvents.length])
+                    : dayEvents;
+
+                if (visibleEvents.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'week-day-event week-day-event-empty';
+                    empty.textContent = '—';
+                    eventsWrap.appendChild(empty);
+                } else {
+                    visibleEvents.forEach(e => {
+                        const line = document.createElement('div');
+                        line.className = 'week-day-event';
+                        line.textContent = e.time ? `${e.time} ${e.title}` : e.title;
+                        eventsWrap.appendChild(line);
+                    });
+                }
+
+                cell.appendChild(eventsWrap);
+                container.appendChild(cell);
+            });
+        }
+
+        function syncMainLayoutOffset() {
+            const h = document.getElementById('weekCalendar').offsetHeight;
+            const mainLayout = document.querySelector('.main-layout');
+            mainLayout.style.marginTop = `${h}px`;
+            mainLayout.style.height = `calc(100vh - ${h}px)`;
+            syncPanelSizeVars();
+        }
+
+        function syncPanelSizeVars() {
+            const clockPanel = document.querySelector('.clock-panel');
+            const calendar = document.getElementById('weekCalendar');
+            const root = document.documentElement.style;
+            root.setProperty('--clock-panel-w', `${clockPanel.getBoundingClientRect().width}px`);
+            root.setProperty('--clock-panel-h', `${clockPanel.getBoundingClientRect().height}px`);
+            root.setProperty('--calendar-w', `${calendar.offsetWidth}px`);
+        }
+
+        window.addEventListener('resize', () => {
+            syncPanelSizeVars();
+            syncScheduleItemScale();
+        });
+
+        function renderWeekCalendar() {
+            const now = new Date();
+            const monday = getMonday(now);
+
+            renderWeekRow(document.getElementById('weekRowCurrent'), buildWeekDays(monday, now), true);
+
+            const upcomingMonday = addDays(monday, weekRotationState === 0 ? 7 : 14);
+            renderWeekRow(document.getElementById('weekRowUpcoming'), buildWeekDays(upcomingMonday, now), false);
+
+            syncMainLayoutOffset();
+        }
+
+        let usingCachedEvents = false;
+        let usingCachedSpecialSchedules = false;
+
+        function updateDataStatusBadge() {
+            const badge = document.getElementById('dataStatus');
+            if (usingCachedEvents || usingCachedSpecialSchedules) {
+                badge.textContent = '⚠ Offline — showing last saved schedule/event data';
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
         }
 
         async function loadEvents() {
-            const response = await fetch(EVENTS_CSV_URL);
-            const text = await response.text();
-            events = parseCSV(text);
-            renderEventsTicker();
+            try {
+                const response = await fetch(EVENTS_CSV_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const text = await response.text();
+                events = parseCSV(text);
+                localStorage.setItem('cachedEventsCSV', text);
+                usingCachedEvents = false;
+            } catch (err) {
+                console.error('Failed to load events CSV, falling back to cache', err);
+                const cached = localStorage.getItem('cachedEventsCSV');
+                events = cached ? parseCSV(cached) : [];
+                usingCachedEvents = true;
+            }
+            updateDataStatusBadge();
+            renderWeekCalendar();
         }
 
         async function loadSpecialSchedules() {
-            const response = await fetch(SPECIAL_SCHEDULE_CSV_URL);
-            const text = await response.text();
-            specialSchedules = buildSpecialSchedules(parseCSV(text));
+            try {
+                const response = await fetch(SPECIAL_SCHEDULE_CSV_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const text = await response.text();
+                specialSchedules = buildSpecialSchedules(parseCSV(text));
+                localStorage.setItem('cachedSpecialCSV', text);
+                usingCachedSpecialSchedules = false;
+            } catch (err) {
+                console.error('Failed to load special schedule CSV, falling back to cache', err);
+                const cached = localStorage.getItem('cachedSpecialCSV');
+                specialSchedules = cached ? buildSpecialSchedules(parseCSV(cached)) : {};
+                usingCachedSpecialSchedules = true;
+            }
+            updateDataStatusBadge();
         }
 
         let showSeconds = localStorage.getItem('showSeconds') === 'true';
@@ -678,23 +836,34 @@
             return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
         }
 
-        function formatDate(date) {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            return date.toLocaleDateString('en-US', options);
-        }
+        const SCHEDULE_TYPE_LABELS = {
+            monday: 'Monday Schedule',
+            regular: 'Regular Day',
+            summer: 'Summer Schedule'
+        };
 
-        function getScheduleForDay(now) {
+        function getDefaultScheduleType(now) {
             const month = now.getMonth();
             const dayOfWeek = now.getDay();
 
             if (month === 6 || month === 7) {
-                if (dayOfWeek >= 1 && dayOfWeek <= 4) return SCHEDULE.summer;
-                return null;
+                return (dayOfWeek >= 1 && dayOfWeek <= 4) ? 'summer' : null;
             }
 
-            if (dayOfWeek === 1) return SCHEDULE.monday;
-            if (dayOfWeek >= 2 && dayOfWeek <= 5) return SCHEDULE.regular;
+            if (dayOfWeek === 1) return 'monday';
+            if (dayOfWeek >= 2 && dayOfWeek <= 5) return 'regular';
             return null;
+        }
+
+        function getScheduleForDay(now) {
+            const type = getDefaultScheduleType(now);
+            return type ? SCHEDULE[type] : null;
+        }
+
+        function getScheduleLabel(now, special) {
+            if (special) return special.message || 'Special Schedule';
+            const type = getDefaultScheduleType(now);
+            return type ? SCHEDULE_TYPE_LABELS[type] : null;
         }
 
         function periodLabel(period) {
@@ -785,16 +954,37 @@
             return { active: false };
         }
 
-        function updateSchedulePanel(schedule, status) {
+        let lastScrolledKey = null;
+        let lastScheduleItemCount = null;
+
+        function syncScheduleItemScale() {
+            const schedulePanel = document.getElementById('schedulePanel');
+            const scheduleList = document.getElementById('scheduleList');
+            if (scheduleList.children.length === 0) return;
+
+            const paddingBottom = parseFloat(getComputedStyle(schedulePanel).paddingBottom) || 0;
+            const availableHeight = schedulePanel.clientHeight - scheduleList.offsetTop - paddingBottom;
+            const renderedHeight = scheduleList.scrollHeight;
+            if (renderedHeight <= 0 || availableHeight <= 0) return;
+
+            const currentScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--schedule-item-scale')) || 1;
+            const idealScale = Math.min(1.3, Math.max(0.45, currentScale * (availableHeight / renderedHeight)));
+
+            document.documentElement.style.setProperty('--schedule-item-scale', idealScale.toFixed(3));
+        }
+
+        function updateSchedulePanel(schedule, status, scheduleLabel) {
             const scheduleList = document.getElementById('scheduleList');
             const schedulePanel = document.getElementById('schedulePanel');
-            
+            const scheduleTypeLabel = document.getElementById('scheduleTypeLabel');
+
             if (!schedule) {
                 schedulePanel.style.display = 'none';
                 return;
             }
-            
+
             schedulePanel.style.display = 'block';
+            scheduleTypeLabel.textContent = scheduleLabel || '';
             scheduleList.innerHTML = '';
             
             schedule.forEach((period) => {
@@ -812,7 +1002,7 @@
                 
                 item.innerHTML = `
                     <div class="schedule-item-period">${periodLabel(period)}</div>
-                    <div class="schedule-item-time">${startTime} - ${endTime}</div>
+                    <div class="schedule-item-time"><span class="time-part">${startTime}</span> <span class="time-part">- ${endTime}</span></div>
                 `;
                 
                 scheduleList.appendChild(item);
@@ -831,6 +1021,23 @@
                     scheduleList.insertBefore(passingItem, items[nextIndex]);
                 }
             }
+
+            if (scheduleList.children.length !== lastScheduleItemCount) {
+                lastScheduleItemCount = scheduleList.children.length;
+                syncScheduleItemScale();
+            }
+
+            const activeKey = status.type === 'period'
+                ? `period-${status.period.period}`
+                : (status.type === 'passing' ? `passing-${status.nextPeriod ? status.nextPeriod.period : ''}` : null);
+
+            if (activeKey && activeKey !== lastScrolledKey) {
+                const activeEl = scheduleList.querySelector('.current, .passing');
+                if (activeEl) activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                lastScrolledKey = activeKey;
+            } else if (!activeKey) {
+                lastScrolledKey = null;
+            }
         }
 
         function updateDisplay() {
@@ -838,15 +1045,15 @@
             const dayOfWeek = now.getDay();
             const special = specialSchedules[getDateKey(now)];
             const schedule = special ? special.periods : getScheduleForDay(now);
+            const scheduleLabel = getScheduleLabel(now, special);
 
             document.getElementById('clock').textContent = formatTime(now, showSeconds);
-            document.getElementById('date').textContent = formatDate(now);
 
             const status = getCurrentStatus(now, schedule);
             const noFlyZone = document.getElementById('noFlyZone');
             noFlyZone.style.display = 'none';
-            
-            updateSchedulePanel(schedule, status);
+
+            updateSchedulePanel(schedule, status, scheduleLabel);
 
             const mainProgressContainer = document.getElementById('mainProgressContainer');
             const simpleMessage = document.getElementById('simpleMessage');
@@ -912,8 +1119,18 @@
             }
         }
 
-        loadEvents().catch(err => console.error('Failed to load events CSV', err));
-        loadSpecialSchedules().catch(err => console.error('Failed to load special schedule CSV', err));
+        renderWeekCalendar();
+        setInterval(() => {
+            weekRotationState = weekRotationState === 0 ? 1 : 0;
+            renderWeekCalendar();
+        }, WEEK_ROTATE_MS);
+        setInterval(() => {
+            eventRotationOffset += 1;
+            renderWeekCalendar();
+        }, EVENT_ROTATE_MS);
+
+        loadEvents();
+        loadSpecialSchedules();
 
         updateDisplay();
         setInterval(updateDisplay, 100);
