@@ -389,6 +389,55 @@
             .clock-panel { flex: 0 0 70%; }
             .schedule-panel { flex: 0 0 30%; border-left: none; border-top: 2px solid rgba(255, 255, 255, 0.3); }
         }
+
+        /* Viewport taller than it is wide: schedule panel becomes a horizontally
+           scrolling bar pinned to the bottom instead of a right-hand sidebar. */
+        @media (max-aspect-ratio: 1/1) {
+            .main-layout { flex-direction: column; }
+            .clock-panel { flex: 1 1 auto; min-height: 0; padding: 1.5rem 1rem 1rem; }
+            .schedule-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                max-height: 34vh;
+                display: flex;
+                align-items: stretch;
+                gap: 1rem;
+                padding: 0.75rem 1rem;
+                overflow: hidden;
+                border-left: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            }
+            .schedule-panel-header {
+                flex: 0 0 auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding-right: 0.75rem;
+                border-right: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .schedule-panel h3 { text-align: left; margin-bottom: 0.1rem; font-size: 1.1rem; white-space: nowrap; }
+            .schedule-type-label { text-align: left; margin-bottom: 0; white-space: nowrap; }
+            #scheduleList {
+                display: flex;
+                flex-direction: row;
+                align-items: stretch;
+                gap: 0.75rem;
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex: 1 1 auto;
+                scroll-snap-type: x proximity;
+            }
+            .schedule-item {
+                flex: 0 0 auto;
+                min-width: 140px;
+                margin-bottom: 0 !important;
+                scroll-snap-align: center;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body class="light-mode">
@@ -428,8 +477,10 @@
         </div>
         
         <div class="schedule-panel" id="schedulePanel">
-            <h3>Today's Schedule</h3>
-            <div class="schedule-type-label" id="scheduleTypeLabel"></div>
+            <div class="schedule-panel-header">
+                <h3>Today's Schedule</h3>
+                <div class="schedule-type-label" id="scheduleTypeLabel"></div>
+            </div>
             <div id="scheduleList"></div>
         </div>
     </div>
@@ -957,10 +1008,19 @@
         let lastScrolledKey = null;
         let lastScheduleItemCount = null;
 
+        function isStackedBottomLayout() {
+            return window.matchMedia('(max-aspect-ratio: 1/1)').matches;
+        }
+
         function syncScheduleItemScale() {
             const schedulePanel = document.getElementById('schedulePanel');
             const scheduleList = document.getElementById('scheduleList');
             if (scheduleList.children.length === 0) return;
+
+            if (isStackedBottomLayout()) {
+                document.documentElement.style.setProperty('--schedule-item-scale', '1');
+                return;
+            }
 
             const paddingBottom = parseFloat(getComputedStyle(schedulePanel).paddingBottom) || 0;
             const availableHeight = schedulePanel.clientHeight - scheduleList.offsetTop - paddingBottom;
@@ -1033,7 +1093,14 @@
 
             if (activeKey && activeKey !== lastScrolledKey) {
                 const activeEl = scheduleList.querySelector('.current, .passing');
-                if (activeEl) activeEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                const stacked = isStackedBottomLayout();
+                if (activeEl) {
+                    activeEl.scrollIntoView({
+                        block: stacked ? 'nearest' : 'center',
+                        inline: stacked ? 'center' : 'nearest',
+                        behavior: 'smooth'
+                    });
+                }
                 lastScrolledKey = activeKey;
             } else if (!activeKey) {
                 lastScrolledKey = null;
